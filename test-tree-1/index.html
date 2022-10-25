@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Script Chart1</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        *{padding:0; margin:0; box-sizing: border-box;}
+        circle{fill:cadetblue;}
+        rect{ width: 140px; height: 40px; filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.12));}
+        path{ fill:none; stroke:#71658C; stroke-width: 2;}
+        text{dominant-baseline: middle; text-anchor: middle; text-transform: uppercase; user-select: none; font-family:Arial, Helvetica, sans-serif; font-size: 14px;}
+        .hew {
+    background:
+        linear-gradient(-90deg, rgba(0,0,0,.05) 1px, transparent 1px),
+        linear-gradient(rgba(0,0,0,.05) 1px, transparent 1px), 
+        linear-gradient(-90deg, rgba(0, 0, 0, .04) 1px, transparent 1px),
+        linear-gradient(rgba(0,0,0,.04) 1px, transparent 1px),
+        linear-gradient(transparent 3px, #f2f2f2 3px, #f2f2f2 78px, transparent 78px),
+        linear-gradient(-90deg, #aaa 1px, transparent 1px),
+        linear-gradient(-90deg, transparent 3px, #f2f2f2 3px, #f2f2f2 78px, transparent 78px),
+        linear-gradient(#aaa 1px, transparent 1px),
+        #f2f2f2;
+    background-size:
+        4px 4px,
+        4px 4px,
+        80px 80px,
+        80px 80px,
+        80px 80px,
+        80px 80px,
+        80px 80px,
+        80px 80px;
+}
+    </style>
+</head>
+<body>
+    <div>
+        <input type="text" name="" id="">
+    </div>
+    <script>
+        let svg = d3.select('body').append('svg')
+                           .attr('width', 1000).attr('height',600)
+                           .append('g').attr('transform', 'translate(50,50)');
+        const data = [
+                              {"child":"Start", "parent":"", "bgcolor":"#71658C"},
+                              {"child":"Good Morning", "parent":"Start", "bgcolor":"#ffffff"},
+                              {"child":"POD or Spouse", "parent":"Good Morning", "bgcolor":"#ffffff"},
+                              {"child":"POD unav", "parent":"Good Morning", "bgcolor":"#ffffff"},
+                              {"child":"Wrong Num", "parent":"Good Morning", "bgcolor":"#ffffff"},
+                              {"child":"Long Que1", "parent":"POD or Spouse", "bgcolor":"#ffffff"},
+                              {"child":"YES", "parent":"Long Que1", "bgcolor":"#ffffff"},
+                              {"child":"NO", "parent":"Long Que1", "bgcolor":"#ffffff"},
+                              {"child":"Long Que2", "parent":"Wrong Num", "bgcolor":"#ffffff"},
+                              {"child":"YES", "parent":"Long Que2", "bgcolor":"#ffffff"},
+                              {"child":"NO", "parent":"Long Que2", "bgcolor":"#ffffff"},
+                             ];
+                             //child is the content of the block
+        
+        //convert data to hierarchy format using d3.stratify
+        let dataStructure = d3.stratify()
+                                           .id(function(d){return d.child;})
+                                           .parentId(function(d){return d.parent;})
+                                           (data);
+        
+        //tree structure
+        let treeStructure = d3.tree().size([1000,400]);
+        let information = treeStructure(dataStructure);
+        /**test structure
+        console.log(information.descendants());
+        console.log(information.links());**/
+
+
+        //node connectors
+         //elbow type connections [always render before the rectangles]
+        let connections = svg.append('g').selectAll('path')
+                                        .data(information.links());
+        connections.enter().append('path')
+                .attr('d', function(d){
+                    return "M" + d.source.x + "," +d.source.y + " v 50 H" +
+                    d.target.x + " V" + d.target.y;
+                });
+
+
+        //circles for nodes
+        /**
+        let circles = svg.append('g').selectAll('circle')
+                                .data(information.descendants());
+        circles.enter().append('circle')
+                .attr('cx', function(d){return d.x;})
+                .attr('cy', function(d){return d.y;})
+                .attr('r',5);
+        **/
+
+        //rectangels for nodes
+        let rectangles = svg.append('g').selectAll('rect')
+                                .data(information.descendants());
+        rectangles.enter().append('rect')
+                .attr('x', function(d){return d.x-70;})
+                .attr('y', function(d){return d.y-20;})
+                .attr('rx', 4)
+                .attr('ry', 4)
+                .attr('fill', function(d){return d.data.bgcolor});
+        
+        //connections or lines to connect nodes curve lines
+        /**
+        let connections = svg.append('g').selectAll('path')
+                                        .data(information.links());
+        connections.enter().append('path')
+                .attr('d', function(d){
+                    return "M" + d.source.x + "," +d.source.y + " C " + 
+                                        d.source.x + "," + (d.source.y + d.target.y)/2 + " " +
+                                        d.target.x + "," + (d.source.y + d.target.y)/2 + " " +
+                                        d.target.x + "," + d.target.y;
+                });
+        **/
+
+        //elbow type connections [should be rendered first]
+        /**
+        let connections = svg.append('g').selectAll('path')
+                                        .data(information.links());
+        connections.enter().append('path')
+                .attr('d', function(d){
+                    return "M" + d.source.x + "," +d.source.y + " v 45 H" +
+                    d.target.x + " V" + d.target.y;
+                });
+        **/
+
+        //text or the contents for nodes
+        let names = svg.append('g').selectAll('text')
+                                .data(information.descendants());
+        names.enter().append('text')
+                .text(function(d){return d.data.child})
+                .attr('x', function(d){return d.x;})
+                .attr('y', function(d){return d.y;});
+
+        //svg rendering is like a stack
+        //last svg element will be rendered on top of everything
+    </script>
+</body>
+</html>
